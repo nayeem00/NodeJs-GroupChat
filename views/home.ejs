@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>Messages</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="messages.css">
+  
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.0.min.js"></script>
+
+  <script type="text/javascript" src="https://cdn-orig.socket.io/socket.io-1.7.3.js"></script>
+</head>
+
+<body>
+
+
+<div class="main_section">
+   <div class="container">
+      <div class="chat_container">
+         <div class="col-sm-3 chat_sidebar">
+       <div class="row">
+            
+            <div class="dropdown all_conversation">
+               <button class="dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-weixin" aria-hidden="true"></i>
+               Active Member
+               <span class="caret pull-right"></span>
+               </button>
+               
+            </div>
+            <div class="member_list">
+               <ul id="Online" class="list-unstyled">
+                  
+                  
+               </ul>
+            </div>
+            </div>
+         </div>
+    
+
+    <!--chat_sidebar-->
+     
+     
+     <div class="col-sm-9 message_section">
+     <div class="row">
+     <div class="new_message_head">
+     <div class="pull-left">
+     <Label> Chat Room</Label>
+     </div>
+     <div class="pull-right">
+     <Label> <a href="/logout" class="btn btn-primary">Logout</a> </Label>
+     </div>
+     </div>
+     </div>
+
+
+     <!--new_message_head-->
+     
+     <div class="chat_area" style="height: 400px;width: 823px">
+     <ul id="new_chat" class="list-unstyled">
+
+     <% for(var i=chat.length-1; i > -1; i--){ %>
+
+     <li class="left clearfix">
+                     <span class="chat-img1 pull-left">
+                     <img src="<%= chat[i].photo %>" class="img-circle">
+                     </span>
+                     <div class="chat-body1 clearfix">
+                        <p><%= chat[i].message %></p>
+            <div class="chat_time pull-right my"><%= chat[i].fullaname %> (<%= chat[i].time %>)</div>
+                     </div>
+                  </li>
+                  <% } %>
+           
+          
+                  
+          </ul>
+          <label id="typing" style="color: white;margin-left: 10px"></label>
+     </div>
+
+
+<div class="message_write">
+       <textarea id="message" class="form-control" placeholder="type a message"></textarea>
+     
+     <div class="chat_bottom">
+     <Label id="Status" class="pull-left " style="margin-right: 10px"></Label>
+     <Label id="online_user" class="pull-left "></Label>
+
+     <button id="BtnSend" class="pull-right btn btn-success send">
+ 
+ Send</button>
+
+
+ </div>
+     </div>
+     </div>
+     <input type="hidden" id="userid" value="<%=user%>">
+     
+
+     
+
+
+         <!--message_section-->
+      </div>
+   </div>
+</div>
+
+    <script src="https://use.fontawesome.com/45e03a14ce.js"></script>
+    <script src="index.js"></script>
+    <script type="text/javascript">
+    $(function(){
+      var x = localStorage['value'];
+      x = x + 100;
+      localStorage['value'] = x;
+      var username = 'Anonymous';
+
+      $('#btnLogin').click(function(){
+        if($('#username').val() != '')
+        {
+          username = $('#username').val();
+        }
+        $('#loginPanel').hide();
+        $('#chatPanel').show();
+      });
+
+      var socket = io.connect();
+
+      socket.on('connect', function(){
+        $('#Status').html('<strong>Status: </strong><span style="color:green">Connected</span>');
+        var user =  $('#userid').val();
+        socket.emit('me connected', {'user': user} );
+        
+      });
+      socket.on('disconnect', function(){
+        $('#Status').html('<strong>Status: </strong><span style="color:red">DisConnected</span>');
+      });
+      socket.on('connect_error', function(){
+        $('#Status').html('<strong>Status: </strong><span style="color:red">Server Error</span>');
+      });
+      socket.on('update list', function(obj){
+        var full = '';
+          for (var i = 0; i < obj.list.length; i++) {
+            full = full+'<li class="left clearfix"><span class="chat-img pull-left"><img src="'+obj.list[i].photo+'" alt="User Avatar"></span><div class="chat-body clearfix"><div class="header_sec"><strong class="primary-font">'+obj.list[i].fullaname+'</strong></div></div></li>'
+          }
+          $('#Online').html(full)
+          $('#online_user').html('<strong> User Online: </strong><span style="color:green">'+obj.count+'</span>');
+      });
+      
+      socket.on('incoming data', function(obj){
+        $('#new_chat').append('<li class="left clearfix"><span class="chat-img1 pull-left"><img src="'+obj.photo+'" alt="User Avatar" class="img-circle"></span><div class="chat-body1 clearfix"><p>'+ obj.message +'</p><div class="chat_time pull-right my">'+obj.fullname+'('+obj.time+')</div></div></li>');
+        scrollB(x);
+        $('#typing').html("");
+      });
+      socket.on('typing', function(obj){
+        $('#typing').html(obj.message);
+        
+      });
+
+      $('#BtnSend').click(function(){
+
+        var message =  $('#message').val();
+        var user =  $('#userid').val();
+        if(message!="")
+        {
+          $('#message').val("") ;
+          socket.emit('send data', {'message':message , 'user' :user} );
+        }
+        
+        
+      });
+
+      $('#message').keyup(function(){
+
+         socket.emit('typing', {'message':"typing...." } ) 
+      
+});
+
+
+      $("#message").keyup(function(event){
+         if(event.keyCode == 13){
+          var message =  $('#message').val();
+        var user =  $('#userid').val(); 
+        str = message.replace(/\s/g, "");
+          if(str != "" ) {
+                event.preventDefault();
+                $('#message').val("") ;
+             socket.emit('send data', {'message':message , 'user' :user} );
+             }
+             else{
+              $('#message').val("") ;
+             }
+           }
+            
+           });
+    });
+  </script>
+
+  <script type="text/javascript">
+  localStorage['value'] = 1500;
+  function scrollB(x){
+
+    $(".chat_area").animate({ scrollTop: $(document).height()+x }, "slow");
+  return false;
+};
+scrollB(localStorage['value']);
+
+
+  </script>
+
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html >
+<head>
+  <meta charset="UTF-8">
+  <title>Login Form</title>
+
+  <link rel="stylesheet" type="text/css" href="style.css">
+
+  <script src=""></script>
+
+</head>
+
+<body>
+  <div class="login">
+  <fieldset>
+	<legend><h1>Registration</h1></legend>
+    <form method="post"  enctype="multipart/form-data">
+    	  <input type="text" name="Username" placeholder="Username" required="required" />
+        <input type="text" name="FullName" placeholder="Full Name" required="required" />
+        <input type="password" name="Password" placeholder="Password" required="required" />
+        <input type="password" name="RePassword" placeholder="Re Type Password" required="required" />
+
+        <label for="photo" style="color: #7bc0f2">Choose a DP</label>
+        <input type="file" id="photo" name="photo"  required="required" />
+        
+         
+
+
+        <button type="submit" class="btn btn-primary btn-block btn-large">Register</button> </br>
+        </form>
+
+         <a class="btn btn-primary btn-block btn-large" href="/login" style="text-decoration:none; color: white"> Login </a>
+        </fieldset>
+
+    <label class="label label-default" style="color: red"><%=message[0].msg%></label>
+</div>
+  
+    <script src="index.js"></script>
+
+</body>
+</html>
